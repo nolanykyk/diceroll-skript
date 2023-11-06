@@ -1,0 +1,216 @@
+# MADE BY NOLAN (discord.gg/mcdevs)
+
+# READ ME!!
+
+# Dependencies 
+
+# Skript
+# Vault 
+# Luckperms (optional)
+
+options:
+
+	# MAIN
+
+	dicerollprefix: <##57E7FB>&lDICE ROLL &8•
+	dicerollcolor: <##57E7FB>
+    
+	diceroll_diceamount: 1 or 2 or 3 or 4 or 5 or 6 # Amount of possible dice to choose from for creation command
+	diceroll_diceamount_random: (1, 2, 3, 4, 5, 6) # For the gui
+    
+	diceroll_multiplier: 0.5 # The multiplier for winnings
+    
+    # PERMISSIONS
+    
+	dicerolladmin_permission: diceroll.admin
+    
+    # VARIABLES
+    
+	dicerollbetamount: {diceroll::betamount::%{_p}%}
+	dicerollrandom: {diceroll::random::%{_p}%}
+	dicerollrandomamount: {diceroll::randomamount::%{_p}%}
+    
+	diceroll_losses: {diceroll::losses::%{_p}%}
+	diceroll_wins: {diceroll::winnings::%{_p}%}
+	diceroll_totalgames: {diceroll::totalgames::%{_p}%}
+    
+	diceroll_wins_loop: {diceroll::winnings::%loop-index%}
+	diceroll_losses_loop: {diceroll::losses::%loop-index%}
+	diceroll_totalgames_loop: {diceroll::totalgames::%loop-index%}
+    
+	dicerolladmin: {diceroll::*}
+  
+    # ERRORS
+  
+	dicerollusage: &cPlease use /dicerollcreate <amount> <roll number> (1 - 6)
+	dicerollcancel: &cYou canceled your current dice roll game
+	diceroll_nopermissions: &cYou do not have sufficient permission to perform this command
+	diceroll_nomoney: &cYou do not have enough money to bet this
+    
+    # MESSAGES
+    
+	dicerollwin: <##57E7FB>&lDICE ROLL &8• <##57E7FB>You won $%{diceroll::betamount::%{_p}%}%
+	dicerolllost: <##57E7FB>&lDICE ROLL &8• <##57E7FB>You lost!
+	dicerollcleared: <##57E7FB>&lDICE ROLL &8• <##57E7FB>You've cleared all dice roll data
+	dicerollcreategame: <##57E7FB>&lDICE ROLL &8• <##57E7FB>Do /dicerollcreate <bet amount> <dice number> to start a game!
+    
+    # GUI SETTINGS
+    
+	diceroll_maingui_name: &8Dice Roll
+	diceroll_ongoinggui_name: &8Dice Roll Game
+	diceroll_menugui_name: &8Dice Roll Menu
+	diceroll_leaderboardgui_name: &8Dice Roll Leaderboard
+  
+function dicerollgui(p: player):
+	if {@dicerollrandom} is set:
+		if {@dicerollbetamount} is set:
+			set {_dicerollgui} to a new chest inventory with 3 rows named "{@diceroll_maingui_name}"
+			set slot 11 of {_dicerollgui} to a red concrete named "&c&lCANCEL" with lore "&7Click me to cancel the dice roll"
+			set slot 13 of {_dicerollgui} to a white concrete of mending 1 with hidden enchantments named "{@dicerollcolor}&lINFO" with lore "&aBet: $%{@dicerollbetamount}%", and "&cRoll: %{@dicerollrandom}%"
+			set slot 15 of {_dicerollgui} to a lime concrete named "&a&lCONFIRM" with lore "&7Click me to start the dice roll"
+			open {_dicerollgui} to {_p}
+
+function dicerollongoing(p: player):
+	if {@dicerollrandom} is set:
+		if {@dicerollbetamount} is set:
+			set {_dicerollongoing} to a new chest inventory with 3 rows named "{@diceroll_ongoinggui_name}"
+			open {_dicerollongoing} to {_p}
+			set slot 13 of {_dicerollongoing} to a red concrete named "{@dicerollcolor}&lSPINNING..."
+			wait 10 ticks
+			set slot 13 of {_dicerollongoing} to a orange concrete named "{@dicerollcolor}&lSPINNING.."
+			wait 10 ticks
+			set slot 13 of {_dicerollongoing} to a yellow concrete named "{@dicerollcolor}&lSPINNING"
+			wait 10 ticks
+			set slot 13 of {_dicerollongoing} to a green concrete named "{@dicerollcolor}&lSPINNING..."
+			wait 10 ticks
+			set slot 13 of {_dicerollongoing} to a blue concrete named "{@dicerollcolor}&lSPINNING.."
+			wait 10 ticks
+			set slot 13 of {_dicerollongoing} to a magenta concrete named "{@dicerollcolor}&lSPINNING"
+			wait 10 ticks
+			set {@dicerollrandomamount} to a random integer out of {@diceroll_diceamount_random}
+			if {@dicerollrandomamount} contains {@dicerollrandom}:
+				add {@diceroll_multiplier} * {@dicerollbetamount} to {@dicerollbetamount}
+				set slot 13 of {_dicerollongoing} to a lime concrete of mending 1 with hidden enchantments named "&a&lYOU WON!" with lore "&aEarnings: $%{@dicerollbetamount}%" 
+				add {@dicerollbetamount} to {_p}'s balance
+				send "{@dicerollwin}" to {_p}
+				add {@dicerollbetamount} to {@diceroll_wins}
+				add 1 to {@diceroll_totalgames}
+				clear {@dicerollbetamount}
+				clear {@dicerollrandomamount}
+				clear {@dicerollrandom}
+			else if {@dicerollrandom} is not {@dicerollrandomamount}:
+				set slot 13 of {_dicerollongoing} to a red concrete of mending 1 with hidden enchantments named "&c&lYOU LOST!" with lore "&cGuess: %{@dicerollrandom}%", and "&aCorrect: %{@dicerollrandomamount}%"
+				send "{@dicerolllost}" to {_p}
+				add {@dicerollbetamount} to {@diceroll_losses}
+				add 1 to {@diceroll_totalgames}
+				clear {@dicerollbetamount}
+				clear {@dicerollrandomamount}
+				clear {@dicerollrandom}
+
+function dicerollmainmenu(p: player):
+	set {_dicerollmainmenu} to a new chest inventory with 3 rows named "{@diceroll_menugui_name}"
+	if {@diceroll_wins} is not set:
+		if {@diceroll_losses} is not set:
+			if {@diceroll_totalgames} is not set:
+				set slot 11 of {_dicerollmainmenu} to a paper named "&9&lSTATISTICS" with lore "", "&aWinnings: $0", "&cLosses: $0", "", and "&eTotal Games: 0"
+				set {@diceroll_wins} to 0
+				set {@diceroll_losses} to 0
+				set {@diceroll_totalgames} to 0
+	if {@diceroll_wins} is set:
+		if {@diceroll_losses} is set:
+			if {@diceroll_totalgames} is set:
+				set slot 11 of {_dicerollmainmenu} to a paper named "&9&lSTATISTICS" with lore "", "&aWinnings: $%dicerollformatted({@diceroll_wins})%", "&cLosses: $%dicerollformatted({@diceroll_losses})%", "", and "&eTotal Games: %{@diceroll_totalgames}%"
+	set slot 13 of {_dicerollmainmenu} to a lime concrete named "&a&lCREATE GAME" with lore "&7Click me to create a game"
+	set slot 15 of {_dicerollmainmenu} to a map named "{@dicerollcolor}&lVIEW LEADERBOARD" with lore "&7Click me to view the leaderboard for statistics"
+	open {_dicerollmainmenu} to {_p}
+
+function dicerollleaderboard(p: player):
+	set {_dicerollleaderboard} to a new chest inventory with 5 rows named "{@diceroll_leaderboardgui_name}"
+	loop {diceroll::winnings::*}:
+		set slots (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35) of {_dicerollleaderboard} to ("%loop-index%" parsed as offline player)'s skull named "{@dicerollcolor}%loop-index%" with lore "", "&aWinnings: $%dicerollformatted({@diceroll_wins_loop})%", "&cLosses: $%dicerollformatted({@diceroll_losses_loop})%", "", and "&eTotal Games: %{@diceroll_totalgames_loop}%"
+	open {_dicerollleaderboard} to {_p}
+
+function dicerollformatted(n: number) :: text: # THIS FUNCTION WAS MADE BY AWEL
+	set {_data} to "QT,18|Q,15|T,12|B,9|M,6|k,3"
+	loop split {_data} at "|":
+		set {_s::*} to split loop-value at ","
+		{_n} >= 10 ^ {_s::2} parsed as number
+		return "%{_n} / 10 ^ {_s::2} parsed as number%%{_s::1}%"
+	return "%{_n}%"
+
+on inventory click:	
+	set {_p} to player
+	if event-inventory's name is "{@diceroll_maingui_name}":
+		cancel event
+		if clicked slot is 11:
+			add {@dicerollbetamount} to player's balance
+			clear {@dicerollrandom}
+			clear {@dicerollbetamount}
+			clear {@dicerollrandomamount}
+			send "{@dicerollcancel}" to executor
+			close player's inventory
+			remove event-item from player's inventory
+		if clicked slot is 15:	
+			make player execute "/dicerollongoing"
+	if event-inventory's name is "{@diceroll_ongoinggui_name}":
+		cancel event
+		if clicked slot is 13:
+			close player's inventory
+			remove event-item from player's inventory
+	if event-inventory's name is "{@diceroll_menugui_name}":
+		cancel event
+		if clicked slot is 13:
+			close player's inventory
+			remove event-item from player's inventory
+			send "{@dicerollcreategame}" to player
+		if clicked slot is 15:
+			make player execute "/dicerollleaderboard"
+	if event-inventory's name is "{@diceroll_leaderboardgui_name}":
+		cancel event
+    
+command /dicerollcreate [<number>] [<number>]:
+	usage: {@dicerollusage}
+	trigger:
+		set {_p} to player
+		if arg-1 is set:
+			if arg-2 is {@diceroll_diceamount}:
+				if player's balance is greater than arg-1:
+					set {@dicerollbetamount} to arg-1
+					set {@dicerollrandom} to arg-2
+					remove arg-1 from player's balance
+					dicerollgui(player)
+				else if player's balance is less than arg-1:
+					send "{@diceroll_nomoney}" to executor
+			else if arg-2 is not {@diceroll_diceamount}:
+				send "{@dicerollusage}" to executor 
+		if arg-1 is not set:		
+			if arg-2 is not set:
+				send "{@dicerollusage}" to executor
+		if arg-1 is set:		
+			if arg-2 is not set:
+				send "{@dicerollusage}" to executor
+                
+command /diceroll-clear:
+	permission: {@dicerolladmin_permission}
+	permission message: {@diceroll_nopermissions}
+	trigger:
+		clear {@dicerolladmin}
+		send "{@dicerollcleared}" to executor
+        
+command /dicerollongoing:
+	trigger:
+		dicerollongoing(player)
+
+command /diceroll:
+	trigger:
+		dicerollmainmenu(player)
+        
+command /dicerollleaderboard:
+	trigger:
+		dicerollleaderboard(player)
+        
+command /ihatethis:
+	trigger:
+		loop {diceroll::winnings::*}:
+			send "%loop-index% %{diceroll::winnings::%loop-index%}%" to player
+    
