@@ -208,9 +208,4 @@ command /diceroll:
 command /dicerollleaderboard:
 	trigger:
 		dicerollleaderboard(player)
-        
-command /ihatethis:
-	trigger:
-		loop {diceroll::winnings::*}:
-			send "%loop-index% %{diceroll::winnings::%loop-index%}%" to player
     
